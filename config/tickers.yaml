@@ -1,0 +1,57 @@
+# TradingBot ML — Watchlists
+# Tickers organized by portfolio section
+
+blue_chip:
+  description: "Large-cap, high-liquidity stocks and ETFs"
+  tickers:
+    - SPY    # S&P 500 ETF
+    - QQQ    # Nasdaq 100 ETF
+    - AAPL   # Apple
+    - MSFT   # Microsoft
+    - GOOGL  # Alphabet
+    - AMZN   # Amazon
+    - JPM    # JPMorgan Chase
+    - V      # Visa
+    - JNJ    # Johnson & Johnson
+    - XLF    # Financial Sector ETF
+
+high_risk:
+  description: "Volatile, momentum-driven picks"
+  tickers:
+    - TSLA   # Tesla
+    - NVDA   # NVIDIA
+    - AMD    # AMD
+    - COIN   # Coinbase
+    - MARA   # Marathon Digital
+    - PLTR   # Palantir
+    - SOFI   # SoFi Technologies
+    - IWM    # Russell 2000 ETF (small-cap proxy)
+    - ARKK   # ARK Innovation ETF
+    - SOXL   # Semiconductor 3x leveraged ETF
+
+longer_horizon:
+  description: "Sector/macro plays for swing trading"
+  tickers:
+    - XLE    # Energy Sector ETF
+    - XLK    # Technology Sector ETF
+    - XLV    # Healthcare Sector ETF
+    - GLD    # Gold ETF
+    - TLT    # 20+ Year Treasury ETF
+    - EEM    # Emerging Markets ETF
+    - DIA    # Dow Jones ETF
+    - VNQ    # Real Estate ETF
+    - USO    # Oil ETF
+    - UNG    # Natural Gas ETF
+
+# Economic indicators to track (FRED series IDs)
+economic_indicators:
+  - FEDFUNDS      # Federal Funds Rate
+  - CPIAUCSL      # Consumer Price Index
+  - UNRATE        # Unemployment Rate
+  - GDP           # Gross Domestic Product
+  - T10Y2Y        # 10Y-2Y Treasury Spread (recession indicator)
+  - VIXCLS        # VIX Volatility Index
+  - DGS10         # 10-Year Treasury Yield
+  - DTWEXBGS      # Trade-Weighted Dollar Index
+  - UMCSENT       # Consumer Sentiment
+  - INDPRO        # Industrial Production

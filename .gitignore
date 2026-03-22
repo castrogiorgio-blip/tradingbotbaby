@@ -1,0 +1,27 @@
+# API Keys - NEVER commit
+.env
+
+# Data files
+data/raw/
+data/processed/
+data/models/
+data/predictions/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite3

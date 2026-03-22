@@ -1,0 +1,15 @@
+Backtest Results for SPY (options mode)
+Date: 2026-03-22T01:24:23.898853
+============================================================
+
+error: No trades executed
+total_trades: 0
+final_portfolio_value: 1000.0
+total_return: 0
+win_rate: 0
+direction_accuracy: 0
+sharpe_ratio: 0
+max_drawdown: 0
+profit_factor: 0
+expectancy: 0
+mode: options

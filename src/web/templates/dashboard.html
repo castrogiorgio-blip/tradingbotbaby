@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingBot ML — Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d29;
+            --bg-card: #222639;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --accent-purple: #a855f7;
+            --border-color: #2d3348;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 .logo { font-size: 28px; }
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 32px;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+        .stat-card .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .stat-card .change {
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .positive { color: var(--accent-green); }
+        .negative { color: var(--accent-red); }
+        .neutral { color: var(--text-secondary); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            border: none;
+            background: none;
+        }
+        .tab:hover { color: var(--text-primary); background: var(--bg-card); }
+        .tab.active {
+            color: #fff;
+            background: var(--accent-blue);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Portfolio Section */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 900px) {
+            .portfolio-grid { grid-template-columns: 1fr; }
+        }
+        .portfolio-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .portfolio-card .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .portfolio-card .card-header h3 { font-size: 16px; font-weight: 600; }
+        .portfolio-card .allocation-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .portfolio-card .card-body { padding: 16px 20px; }
+        .ticker-list { list-style: none; }
+        .ticker-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        .ticker-item:last-child { border-bottom: none; }
+        .ticker-symbol { font-weight: 600; font-family: monospace; font-size: 14px; }
+
+        /* Signal badges */
+        .signal-badge {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .signal-buy-call { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+        .signal-buy-put { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+        .signal-hold { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); }
+
+        /* Chart container */
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .chart-container h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        /* Trades Table */
+        .trades-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .trades-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .trades-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .trades-table tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* Training Results */
+        .training-results {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+        .training-results pre {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 18px; color: var(--text-secondary); margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; max-width: 400px; margin: 0 auto; }
+
+        /* Confidence bar */
+        .confidence-bar {
+            width: 60px;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+        .confidence-bar .fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        /* Two-column layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        /* Section headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .section-header h2 { font-size: 18px; font-weight: 600; }
+
+        /* Info tooltip */
+        .info-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        /* Action buttons */
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+        .btn-primary:hover:not(:disabled) { background: #2563eb; }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover:not(:disabled) { background: #2d3348; }
+        .btn-success {
+            background: var(--accent-green);
+            color: #fff;
+            border-color: var(--accent-green);
+        }
+        .btn-success:hover:not(:disabled) { background: #16a34a; }
+        .btn-danger {
+            background: transparent;
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+        .btn-danger:hover:not(:disabled) { background: rgba(239,68,68,0.1); }
+
+        .btn .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        .btn.loading .spinner { display: inline-block; }
+        .btn.loading .btn-text { opacity: 0.7; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Status toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            max-width: 400px;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: #16a34a; color: #fff; }
+        .toast-error { background: #dc2626; color: #fff; }
+        .toast-info { background: var(--accent-blue); color: #fff; }
+        .toast-running { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--accent-blue); }
+
+        /* Scheduler card */
+        .scheduler-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .scheduler-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .scheduler-info h4 { font-size: 15px; margin-bottom: 4px; }
+        .scheduler-info p { font-size: 12px; color: var(--text-muted); }
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--border-color);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 20px; width: 20px;
+            left: 3px; bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--accent-green); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+        /* Output log */
+        .output-log {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            display: none;
+        }
+        .output-log.visible { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <span class="logo">📈</span>
+            TradingBot ML
+        </h1>
+        <div style="display:flex;align-items:center;gap:16px;">
+            <div class="status">
+                <div class="status-dot"></div>
+                <span id="last-updated">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats Row -->
+        <div class="stats-row" id="stats-row">
+            <div class="stat-card">
+                <div class="label">Portfolio Value</div>
+                <div class="value" id="stat-portfolio">$1,000</div>
+                <div class="change neutral" id="stat-return">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Trades</div>
+                <div class="value" id="stat-trades">0</div>
+                <div class="change neutral">backtest period</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Win Rate</div>
+                <div class="value" id="stat-winrate">—</div>
+                <div class="change neutral" id="stat-winrate-label">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Sharpe Ratio</div>
+                <div class="value" id="stat-sharpe">—</div>
+                <div class="change neutral">risk-adjusted return</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Max Drawdown</div>
+                <div class="value" id="stat-drawdown">—</div>
+                <div class="change neutral">worst peak-to-trough</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="portfolios">Portfolios</button>
+            <button class="tab" data-tab="backtest">Backtest</button>
+            <button class="tab" data-tab="trades">Trade Log</button>
+            <button class="tab" data-tab="training">Model Training</button>
+        </div>
+
+        <!-- Tab: Portfolios -->
+        <div class="tab-content active" id="tab-portfolios">
+            <!-- Action Buttons -->
+            <div class="action-bar">
+                <button class="btn btn-primary" id="btn-predictions" onclick="runPredictions()">
+                    <div class="spinner"></div>
+                    <span class="btn-text">Run Predictions</span>
+                </button>
+                <button class="btn btn-secondary" id="btn-backtest" onclick="runBacktest()">
+                    <div class="spinner"></div>
+                    <span class="btn-text">Run Backtest</span>
+                </button>
+                <button class="btn btn-secondary" id="btn-train" onclick="runTraining()">
+                    <div class="spinner"></div>
+                    <span class="btn-text">Re-Train Models</span>
+                </button>
+            </div>
+
+            <!-- Output log (shown when jobs run) -->
+            <div class="output-log" id="job-output"></div>
+
+            <!-- Auto-Scheduler -->
+            <div class="scheduler-card">
+                <div class="scheduler-row">
+                    <div class="scheduler-info">
+                        <h4>Daily Auto-Run</h4>
+                        <p id="scheduler-desc">Automatically runs predictions every weekday at 6:00 AM EST before market open</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="scheduler-toggle" onchange="toggleScheduler(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="portfolio-grid" id="portfolio-grid"></div>
+        </div>
+
+        <!-- Tab: Backtest -->
+        <div class="tab-content" id="tab-backtest">
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-backtest2" onclick="runBacktest()">
+                    <div class="spinner"></div>
+                    <span class="btn-text">Re-Run Backtest</span>
+                </button>
+            </div>
+            <div class="two-col">
+                <div class="chart-container">
+                    <h3>Portfolio Value Over Time</h3>
+                    <canvas id="portfolio-chart" height="300"></canvas>
+                </div>
+                <div>
+                    <div class="chart-container">
+                        <h3>Signal Distribution</h3>
+                        <canvas id="signal-chart" height="200"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Exit Reasons</h3>
+                        <canvas id="exit-chart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Trade Log -->
+        <div class="tab-content" id="tab-trades">
+            <div class="chart-container">
+                <h3>Recent Trades</h3>
+                <div id="trades-table-container">
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <h3>No trades yet</h3>
+                        <p>Run the backtest to see simulated trade history.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Training -->
+        <div class="tab-content" id="tab-training">
+            <div class="training-results">
+                <h3 style="margin-bottom:16px;">Model Training Results — SPY</h3>
+                <pre id="training-text">Loading...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ── Tab switching ──
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    // ── Helpers ──
+    function fmt(val, type) {
+        if (val === undefined || val === null || val === '' || val === '0') return '—';
+        const n = parseFloat(val);
+        if (isNaN(n)) return val;
+        if (type === 'pct') return (n * 100).toFixed(1) + '%';
+        if (type === 'dollar') return '$' + n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        if (type === 'num') return n.toFixed(2);
+        return val;
+    }
+
+    function signalClass(signal) {
+        if (signal === 'BUY_CALL') return 'signal-buy-call';
+        if (signal === 'BUY_PUT') return 'signal-buy-put';
+        return 'signal-hold';
+    }
+
+    function signalLabel(signal) {
+        if (signal === 'BUY_CALL') return 'BUY CALL';
+        if (signal === 'BUY_PUT') return 'BUY PUT';
+        return 'HOLD';
+    }
+
+    function confColor(conf) {
+        const c = parseFloat(conf);
+        if (c >= 0.6) return 'var(--accent-green)';
+        if (c >= 0.3) return 'var(--accent-yellow)';
+        return 'var(--accent-red)';
+    }
+
+    // ── Toast Notifications ──
+    function showToast(message, type = 'info', duration = 4000) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast toast-' + type + ' show';
+        setTimeout(() => { toast.classList.remove('show'); }, duration);
+    }
+
+    // ── Button Loading State ──
+    function setButtonLoading(btnId, loading) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        if (loading) {
+            btn.classList.add('loading');
+            btn.disabled = true;
+        } else {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+    }
+
+    // ── Job Polling ──
+    function pollJob(jobId, btnIds, onDone) {
+        const outputEl = document.getElementById('job-output');
+        outputEl.classList.add('visible');
+        outputEl.textContent = 'Starting ' + jobId + '...\n';
+
+        const interval = setInterval(() => {
+            fetch('/api/job/' + jobId)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'running') {
+                        outputEl.textContent = 'Running ' + jobId + '... (started ' +
+                            new Date(data.started).toLocaleTimeString() + ')';
+                    } else {
+                        clearInterval(interval);
+                        btnIds.forEach(id => setButtonLoading(id, false));
+
+                        if (data.status === 'done') {
+                            outputEl.textContent = data.output || 'Completed successfully.';
+                            showToast(jobId.charAt(0).toUpperCase() + jobId.slice(1) + ' completed!', 'success');
+                            if (onDone) onDone(data);
+                        } else {
+                            outputEl.textContent = 'ERROR:\n' + (data.output || 'Unknown error');
+                            showToast('Error running ' + jobId, 'error');
+                        }
+                        outputEl.scrollTop = outputEl.scrollHeight;
+                    }
+                })
+                .catch(() => {
+                    clearInterval(interval);
+                    btnIds.forEach(id => setButtonLoading(id, false));
+                });
+        }, 2000);
+    }
+
+    // ── Run Predictions ──
+    function runPredictions() {
+        setButtonLoading('btn-predictions', true);
+        showToast('Starting predictions for all tickers...', 'info');
+
+        fetch('/api/run/predictions', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({auto_retrain: true}),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, 'error');
+                setButtonLoading('btn-predictions', false);
+                return;
+            }
+            pollJob('predictions', ['btn-predictions'], () => {
+                // Reload predictions into portfolio cards
+                loadPredictionsIntoCards();
+                refreshOverview();
+
+                // Predictions done — auto-retrain is chained on the backend
+                showToast('Predictions done! Auto-retraining models...', 'info', 5000);
+                setButtonLoading('btn-train', true);
+
+                // Poll the auto-chained training job
+                pollJob('train', ['btn-train'], () => {
+                    showToast('Models retrained with latest data!', 'success');
+                    fetch('/api/training-results/SPY').then(r => r.json()).then(d => {
+                        document.getElementById('training-text').textContent = d.text;
+                    });
+                });
+            });
+        })
+        .catch(() => {
+            showToast('Failed to start predictions', 'error');
+            setButtonLoading('btn-predictions', false);
+        });
+    }
+
+    // ── Run Backtest ──
+    function runBacktest() {
+        setButtonLoading('btn-backtest', true);
+        setButtonLoading('btn-backtest2', true);
+        showToast('Starting backtest for SPY...', 'info');
+
+        fetch('/api/run/backtest', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({symbol: 'SPY', capital: 1000}),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, 'error');
+                setButtonLoading('btn-backtest', false);
+                setButtonLoading('btn-backtest2', false);
+                return;
+            }
+            pollJob('backtest', ['btn-backtest', 'btn-backtest2'], () => {
+                refreshOverview();
+                refreshBacktestCharts();
+                refreshTradesTable();
+            });
+        })
+        .catch(() => {
+            showToast('Failed to start backtest', 'error');
+            setButtonLoading('btn-backtest', false);
+            setButtonLoading('btn-backtest2', false);
+        });
+    }
+
+    // ── Run Training ──
+    function runTraining() {
+        setButtonLoading('btn-train', true);
+        showToast('Starting model training for SPY...', 'info');
+
+        fetch('/api/run/train', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({symbols: ['SPY']}),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, 'error');
+                setButtonLoading('btn-train', false);
+                return;
+            }
+            pollJob('train', ['btn-train'], () => {
+                fetch('/api/training-results/SPY').then(r => r.json()).then(d => {
+                    document.getElementById('training-text').textContent = d.text;
+                });
+            });
+        })
+        .catch(() => {
+            showToast('Failed to start training', 'error');
+            setButtonLoading('btn-train', false);
+        });
+    }
+
+    // ── Scheduler Toggle ──
+    function toggleScheduler(enabled) {
+        const url = enabled ? '/api/scheduler/enable' : '/api/scheduler/disable';
+        fetch(url, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'enabled' || data.status === 'disabled') {
+                    showToast(data.message, 'success');
+                    document.getElementById('scheduler-desc').textContent = enabled
+                        ? 'Auto-scheduler is ON — predictions run every weekday at 6:00 AM'
+                        : 'Automatically runs predictions every weekday at 6:00 AM EST before market open';
+                } else {
+                    showToast('Scheduler error: ' + (data.message || 'unknown'), 'error');
+                    document.getElementById('scheduler-toggle').checked = !enabled;
+                }
+            })
+            .catch(() => {
+                showToast('Failed to toggle scheduler', 'error');
+                document.getElementById('scheduler-toggle').checked = !enabled;
+            });
+    }
+
+    // Check scheduler status on load
+    fetch('/api/scheduler/status')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('scheduler-toggle').checked = data.configured;
+            if (data.configured) {
+                document.getElementById('scheduler-desc').textContent =
+                    'Auto-scheduler is ON — predictions run every weekday at 6:00 AM';
+            }
+        })
+        .catch(() => {});
+
+    // ── Load Predictions into Portfolio Cards ──
+    function loadPredictionsIntoCards() {
+        fetch('/api/predictions')
+            .then(r => r.json())
+            .then(data => {
+                const latest = data.latest;
+                if (!latest || !latest.predictions) return;
+
+                document.querySelectorAll('.ticker-item').forEach(item => {
+                    const symbol = item.querySelector('.ticker-symbol').textContent;
+                    const pred = latest.predictions[symbol];
+                    const badge = item.querySelector('.signal-badge');
+
+                    if (pred) {
+                        badge.textContent = signalLabel(pred.signal);
+                        badge.className = 'signal-badge ' + signalClass(pred.signal);
+
+                        // Add confidence bar
+                        const conf = parseFloat(pred.confidence || 0);
+                        const existingBar = item.querySelector('.confidence-bar');
+                        if (!existingBar && conf > 0) {
+                            const bar = document.createElement('span');
+                            bar.className = 'confidence-bar';
+                            bar.innerHTML = '<span class="fill" style="width:' + (conf * 100) + '%;background:' + confColor(conf) + '"></span>';
+                            badge.after(bar);
+                        }
+                    }
+                });
+            })
+            .catch(() => {});
+    }
+
+    // ── Refresh Functions ──
+    function refreshOverview() {
+        fetch('/api/overview')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('last-updated').textContent =
+                    'Last updated: ' + new Date(data.last_updated).toLocaleString();
+
+                const pv = parseFloat(data.portfolio_value);
+                document.getElementById('stat-portfolio').textContent = fmt(pv, 'dollar');
+
+                const ret = parseFloat(data.total_return);
+                const retEl = document.getElementById('stat-return');
+                retEl.textContent = isNaN(ret) ? '—' : (ret >= 0 ? '+' : '') + (ret * 100).toFixed(2) + '%';
+                retEl.className = 'change ' + (ret >= 0 ? 'positive' : 'negative');
+
+                document.getElementById('stat-trades').textContent = data.total_trades || '0';
+
+                const wr = parseFloat(data.win_rate);
+                document.getElementById('stat-winrate').textContent = isNaN(wr) ? '—' : (wr * 100).toFixed(1) + '%';
+                document.getElementById('stat-winrate-label').textContent =
+                    isNaN(wr) ? '—' : (wr >= 0.5 ? 'above breakeven' : 'below breakeven');
+                document.getElementById('stat-winrate-label').className =
+                    'change ' + (wr >= 0.5 ? 'positive' : 'negative');
+
+                document.getElementById('stat-sharpe').textContent = fmt(data.sharpe_ratio, 'num');
+                document.getElementById('stat-drawdown').textContent =
+                    isNaN(parseFloat(data.max_drawdown)) ? '—' : (parseFloat(data.max_drawdown) * 100).toFixed(1) + '%';
+            })
+            .catch(() => {});
+    }
+
+    function refreshBacktestCharts() {
+        // Destroy existing charts and recreate
+        if (portfolioChart) { portfolioChart.destroy(); portfolioChart = null; }
+        if (signalChart) { signalChart.destroy(); signalChart = null; }
+        if (exitChart) { exitChart.destroy(); exitChart = null; }
+        loadBacktestCharts();
+    }
+
+    function refreshTradesTable() {
+        fetch('/api/backtest/SPY')
+            .then(r => r.json())
+            .then(data => {
+                if (data.trades && data.trades.length > 0) {
+                    const container = document.getElementById('trades-table-container');
+                    const rows = data.trades.slice(-50).reverse().map(t => {
+                        const pnl = parseFloat(t.pnl_dollar || 0);
+                        const pnlPct = parseFloat(t.pnl_pct || 0);
+                        return `<tr>
+                            <td>${(t.entry_date || '').split(' ')[0]}</td>
+                            <td>${(t.exit_date || '').split(' ')[0]}</td>
+                            <td><span class="signal-badge ${t.option_type === 'call' ? 'signal-buy-call' : 'signal-buy-put'}">${(t.option_type || '').toUpperCase()}</span></td>
+                            <td>$${parseFloat(t.entry_price || 0).toFixed(2)}</td>
+                            <td>$${parseFloat(t.premium_paid || 0).toFixed(2)}</td>
+                            <td class="${pnl >= 0 ? 'positive' : 'negative'}">$${pnl.toFixed(2)}</td>
+                            <td class="${pnlPct >= 0 ? 'positive' : 'negative'}">${(pnlPct * 100).toFixed(1)}%</td>
+                            <td>${(t.exit_reason || '').replace('_', ' ')}</td>
+                        </tr>`;
+                    }).join('');
+
+                    container.innerHTML = `
+                        <table class="trades-table">
+                            <thead><tr>
+                                <th>Entry</th><th>Exit</th><th>Type</th><th>Price</th>
+                                <th>Premium</th><th>P&L</th><th>P&L %</th><th>Exit Reason</th>
+                            </tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    `;
+                }
+            })
+            .catch(() => {});
+    }
+
+    // ── Initial Data Load ──
+    refreshOverview();
+    loadPredictionsIntoCards();
+
+    // ── Load Portfolios ──
+    fetch('/api/portfolios')
+        .then(r => r.json())
+        .then(portfolios => {
+            const grid = document.getElementById('portfolio-grid');
+            grid.innerHTML = '';
+
+            for (const [key, section] of Object.entries(portfolios)) {
+                const card = document.createElement('div');
+                card.className = 'portfolio-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${section.name}</h3>
+                        <span class="allocation-badge" style="background:${section.color}20;color:${section.color}">
+                            ${section.allocation}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+                            ${section.description}
+                        </p>
+                        <ul class="ticker-list">
+                            ${section.tickers.map(t => `
+                                <li class="ticker-item">
+                                    <span class="ticker-symbol">${t}</span>
+                                    <span class="signal-badge signal-hold">PENDING</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+
+            // After cards load, overlay any existing predictions
+            loadPredictionsIntoCards();
+        })
+        .catch(() => {});
+
+    // ── Load Backtest Charts ──
+    let portfolioChart = null;
+    let signalChart = null;
+    let exitChart = null;
+
+    function loadBacktestCharts() {
+        fetch('/api/portfolio-history/SPY')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.dates || data.dates.length === 0) return;
+
+                const ctx = document.getElementById('portfolio-chart').getContext('2d');
+                portfolioChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.dates.map(d => d.split(' ')[0]),
+                        datasets: [{
+                            label: 'Portfolio Value',
+                            data: data.values,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            borderWidth: 2,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => '$' + ctx.parsed.y.toFixed(2)
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#64748b', maxTicksLimit: 10 }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: {
+                                    color: '#64748b',
+                                    callback: v => '$' + v.toFixed(0)
+                                }
+                            },
+                        },
+                    },
+                });
+            })
+            .catch(() => {});
+
+        fetch('/api/backtest/SPY')
+            .then(r => r.json())
+            .then(data => {
+                // Signal distribution chart
+                if (data.predictions && data.predictions.length > 0) {
+                    const signals = {BUY_CALL: 0, BUY_PUT: 0, HOLD: 0};
+                    data.predictions.forEach(p => { signals[p.signal] = (signals[p.signal] || 0) + 1; });
+
+                    const ctx2 = document.getElementById('signal-chart').getContext('2d');
+                    signalChart = new Chart(ctx2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['BUY CALL', 'BUY PUT', 'HOLD'],
+                            datasets: [{
+                                data: [signals.BUY_CALL, signals.BUY_PUT, signals.HOLD],
+                                backgroundColor: ['#22c55e', '#ef4444', '#475569'],
+                                borderWidth: 0,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12 } } },
+                            },
+                        },
+                    });
+                }
+
+                // Exit reasons chart
+                if (data.trades && data.trades.length > 0) {
+                    const reasons = {};
+                    data.trades.forEach(t => {
+                        const r = t.exit_reason || 'unknown';
+                        reasons[r] = (reasons[r] || 0) + 1;
+                    });
+
+                    const ctx3 = document.getElementById('exit-chart').getContext('2d');
+                    exitChart = new Chart(ctx3, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(reasons).map(r => r.replace('_', ' ')),
+                            datasets: [{
+                                data: Object.values(reasons),
+                                backgroundColor: ['#eab308', '#22c55e', '#3b82f6', '#a855f7'],
+                                borderWidth: 0,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12 } } },
+                            },
+                        },
+                    });
+
+                    refreshTradesTable();
+                }
+            })
+            .catch(() => {});
+    }
+
+    loadBacktestCharts();
+
+    // ── Load Training Results ──
+    fetch('/api/training-results/SPY')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('training-text').textContent = data.text;
+        })
+        .catch(() => {
+            document.getElementById('training-text').textContent = 'No training results available. Run: python3 train_models.py --symbols SPY';
+        });
+    </script>
+</body>
+</html>

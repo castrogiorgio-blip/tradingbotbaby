@@ -1,0 +1,35 @@
+Monte Carlo Simulation Results for SPY
+Date: 2026-03-22T02:08:56.888806
+Simulations: 3000
+Actual trades: 309
+============================================================
+
+method: Combined
+n_simulations: 3000
+starting_capital: 1000.0
+mean_final_value: 1011.3756096489218
+median_final_value: 1008.8139211682089
+mean_return: 0.011375609648921795
+median_return: 0.008813921168208935
+std_return: 0.006006609890042339
+min_final_value: 987.6704688326332
+max_final_value: 1034.4000182151647
+ci_5: 1002.5277081961224
+ci_10: 1005.6583713084605
+ci_25: 1008.8139211682073
+ci_50: 1008.8139211682089
+ci_75: 1014.4471795766087
+ci_90: 1019.5480395204863
+ci_95: 1022.7297509892311
+return_ci_5: 0.002527708196122342
+return_ci_25: 0.008813921168207344
+return_ci_75: 0.014447179576608732
+return_ci_95: 0.022729750989231058
+prob_profit: 0.9736666666666667
+prob_loss_5pct: 0.0
+prob_loss_10pct: 0.0
+prob_gain_5pct: 0.0
+prob_gain_10pct: 0.0
+var_95: -2.5277081961223757
+var_99: 4.552472779502409
+cvar_95: 1.3279433409111334

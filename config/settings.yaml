@@ -1,0 +1,70 @@
+# TradingBot ML — Configuration
+# API keys are loaded from .env file (never commit .env to version control)
+# This file contains only non-sensitive configuration parameters
+
+# === Broker ===
+alpaca:
+  base_url: "https://paper-api.alpaca.markets"  # Switch to live when ready
+  paper_trading: true
+  data_feed: "iex"  # "iex" (free) or "sip" (paid, real-time)
+
+# === Model Parameters ===
+models:
+  xgboost:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    min_child_weight: 3
+  lstm:
+    sequence_length: 60  # days of lookback
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.2
+    epochs: 50
+    batch_size: 32
+  ensemble:
+    confidence_threshold: 0.15  # V6: lowered — new formula produces higher values, this filters noise
+    weights:
+      xgboost: 0.30     # V6: 5-model ensemble — XGBoost still leads
+      lstm: 0.15         # V6: LSTM for sequential patterns
+      tft: 0.25          # V6: TFT for temporal attention
+      tabnet: 0.20       # V6: TabNet for tabular attention
+      sentiment: 0.10    # V6: sentiment boost when available
+
+# === Trading Parameters ===
+trading:
+  max_portfolio_risk_per_trade: 0.03  # V5: 3% per trade (was 5%) — smaller bets, more trades
+  daily_loss_limit: 0.05              # stop trading after 5% daily loss
+  max_open_positions: 5               # V5: allow more concurrent positions for diversification
+  options:
+    default_dte_range: [21, 35]       # V6: 3-5 week options (avoids theta crush zone)
+    target_delta: 0.40                # slightly OTM
+    stop_loss_pct: 0.35               # 35% of premium
+    take_profit_pct: 0.50             # 50% of premium (take profits earlier)
+
+# === Portfolio Sections ===
+portfolios:
+  blue_chip:
+    allocation_pct: 0.50              # 50% of capital
+    min_confidence: 0.35              # V2: lowered for early phase
+    rebalance: "weekly"
+  high_risk:
+    allocation_pct: 0.25              # 25% of capital
+    min_confidence: 0.20              # V2: lowered — high-risk accepts lower confidence
+    rebalance: "daily"
+  longer_horizon:
+    allocation_pct: 0.25              # 25% of capital
+    min_confidence: 0.30              # V2: lowered for early phase
+    dte_range: [30, 90]
+    rebalance: "monthly"
+
+# === Scheduler ===
+scheduler:
+  daily_run_time: "06:00"             # EST
+  timezone: "US/Eastern"
+
+# === Web Dashboard ===
+web:
+  host: "127.0.0.1"
+  port: 5000
+  debug: false
