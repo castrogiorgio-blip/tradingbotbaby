@@ -1,5 +1,5 @@
 Backtest Results for SPY (options mode)
-Date: 2026-03-22T01:24:23.898853
+Date: 2026-03-22T02:57:06.808557
 ============================================================
 
 error: No trades executed

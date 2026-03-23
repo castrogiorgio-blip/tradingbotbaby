@@ -1,0 +1,169 @@
+================================================================================
+WALK-FORWARD BACKTEST SUMMARY
+================================================================================
+
+Configuration:
+  Min training window: 120 trading days
+  Test window: 21 trading days
+  Step between folds: 21 trading days
+  Strategy mode: directional
+  Starting capital per fold: $1,000.00
+  Folds completed: 17
+
+
+DIRECTIONAL MODE
+--------------------------------------------------------------------------------
+  Folds: 17
+  Total trades (out-of-sample): 208
+  Avg trades per fold: 12.2
+  Total P&L: $-16.41
+  Avg P&L per trade: $-0.08
+  Win rate: 30.8%
+  Avg win rate per fold: 32.0%
+  Avg direction accuracy: 32.0%
+  Avg Sharpe ratio: -2.66
+  Avg return per fold: -0.10%
+  Aggregate return: -1.64%
+
+================================================================================
+FOLD BREAKDOWN
+================================================================================
+
+Fold 1 (directional):
+  Trades: 15
+  Win rate: 13.3%
+  Return: -0.22%
+  Sharpe: -5.18
+  Max DD: -0.2%
+  Direction accuracy: 13.3%
+
+Fold 2 (directional):
+  Trades: 9
+  Win rate: 11.1%
+  Return: -0.11%
+  Sharpe: -3.53
+  Max DD: -0.1%
+  Direction accuracy: 11.1%
+
+Fold 3 (directional):
+  Trades: 14
+  Win rate: 14.3%
+  Return: -0.32%
+  Sharpe: -6.18
+  Max DD: -0.4%
+  Direction accuracy: 14.3%
+
+Fold 4 (directional):
+  Trades: 10
+  Win rate: 10.0%
+  Return: -0.07%
+  Sharpe: -4.40
+  Max DD: -0.1%
+  Direction accuracy: 10.0%
+
+Fold 5 (directional):
+  Trades: 19
+  Win rate: 57.9%
+  Return: +0.00%
+  Sharpe: 0.06
+  Max DD: -0.2%
+  Direction accuracy: 57.9%
+
+Fold 6 (directional):
+  Trades: 17
+  Win rate: 41.2%
+  Return: -0.04%
+  Sharpe: -0.99
+  Max DD: -0.1%
+  Direction accuracy: 41.2%
+
+Fold 7 (directional):
+  Trades: 13
+  Win rate: 23.1%
+  Return: -0.22%
+  Sharpe: -4.85
+  Max DD: -0.3%
+  Direction accuracy: 23.1%
+
+Fold 8 (directional):
+  Trades: 12
+  Win rate: 75.0%
+  Return: +0.06%
+  Sharpe: 1.46
+  Max DD: -0.1%
+  Direction accuracy: 75.0%
+
+Fold 9 (directional):
+  Trades: 12
+  Win rate: 8.3%
+  Return: -0.16%
+  Sharpe: -5.82
+  Max DD: -0.2%
+  Direction accuracy: 8.3%
+
+Fold 10 (directional):
+  Trades: 6
+  Win rate: 66.7%
+  Return: +0.04%
+  Sharpe: 2.65
+  Max DD: -0.0%
+  Direction accuracy: 66.7%
+
+Fold 11 (directional):
+  Trades: 16
+  Win rate: 0.0%
+  Return: -0.30%
+  Sharpe: -7.95
+  Max DD: -0.3%
+  Direction accuracy: 0.0%
+
+Fold 12 (directional):
+  Trades: 1
+  Win rate: 100.0%
+  Return: +0.01%
+  Sharpe: 3.06
+  Max DD: -0.0%
+  Direction accuracy: 100.0%
+
+Fold 13 (directional):
+  Trades: 18
+  Win rate: 55.6%
+  Return: -0.01%
+  Sharpe: -0.19
+  Max DD: -0.2%
+  Direction accuracy: 55.6%
+
+Fold 14 (directional):
+  Trades: 12
+  Win rate: 25.0%
+  Return: -0.08%
+  Sharpe: -3.67
+  Max DD: -0.1%
+  Direction accuracy: 25.0%
+
+Fold 15 (directional):
+  Trades: 21
+  Win rate: 42.9%
+  Return: +0.02%
+  Sharpe: 0.31
+  Max DD: -0.3%
+  Direction accuracy: 42.9%
+
+Fold 16 (directional):
+  Trades: 11
+  Win rate: 0.0%
+  Return: -0.23%
+  Sharpe: -6.48
+  Max DD: -0.2%
+  Direction accuracy: 0.0%
+
+Fold 17 (directional):
+  Trades: 2
+  Win rate: 0.0%
+  Return: -0.01%
+  Sharpe: -3.49
+  Max DD: -0.0%
+  Direction accuracy: 0.0%
+
+================================================================================
+Report saved at 2026-03-22T02:42:21.104371

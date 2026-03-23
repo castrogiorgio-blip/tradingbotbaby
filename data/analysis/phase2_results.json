@@ -1,0 +1,189 @@
+{
+  "analysis_date": "2026-03-22T03:49:32.016880",
+  "data_period": "2024-12-16 to 2026-03-20",
+  "total_credit_spread_trades": 71,
+  "overall_win_rate": 0.8732394366197183,
+  "total_pnl_dollar": 230.68066956621655,
+  "avg_pnl_per_trade": 3.2490235150171345,
+  "regime_analysis": {
+    "regime_distribution": {
+      "MEAN_REVERTING": 58.72509960159362,
+      "TRENDING_UP": 19.760956175298805,
+      "UNKNOWN": 16.812749003984067,
+      "TRENDING_DOWN": 4.701195219123506
+    },
+    "regime_counts": {
+      "MEAN_REVERTING": 737,
+      "TRENDING_UP": 248,
+      "UNKNOWN": 211,
+      "TRENDING_DOWN": 59
+    },
+    "unknown_percentage": 16.812749003984067,
+    "regime_profitability": {
+      "MEAN_REVERTING": {
+        "trade_count": 39,
+        "win_rate": 0.8461538461538461,
+        "avg_pnl_dollar": 2.664915855401755,
+        "avg_pnl_pct": 0.11807873029974847,
+        "total_pnl_dollar": 103.93171836066844,
+        "bull_put_trades": 4,
+        "bull_put_win_rate": 1.0,
+        "bull_put_avg_pnl": 3.971429041516174,
+        "bear_call_trades": 35,
+        "bear_call_win_rate": 0.8285714285714286,
+        "bear_call_avg_pnl": 2.5156000627029647
+      },
+      "TRENDING_DOWN": {
+        "trade_count": 7,
+        "win_rate": 1.0,
+        "avg_pnl_dollar": 5.185490621225914,
+        "avg_pnl_pct": 0.28442879212342675,
+        "total_pnl_dollar": 36.298434348581395,
+        "bull_put_trades": 1,
+        "bull_put_win_rate": 1.0,
+        "bull_put_avg_pnl": 4.314724330947026,
+        "bear_call_trades": 6,
+        "bear_call_win_rate": 1.0,
+        "bear_call_avg_pnl": 5.330618336272395
+      },
+      "UNKNOWN": {
+        "trade_count": 25,
+        "win_rate": 0.88,
+        "avg_pnl_dollar": 3.6180206742786676,
+        "avg_pnl_pct": 0.1843203258785054,
+        "total_pnl_dollar": 90.45051685696669,
+        "bull_put_trades": 25,
+        "bull_put_win_rate": 0.88,
+        "bull_put_avg_pnl": 3.6180206742786676,
+        "bear_call_trades": 0,
+        "bear_call_win_rate": 0,
+        "bear_call_avg_pnl": 0
+      }
+    },
+    "vix_correlation": NaN,
+    "vix_range_analysis": {
+      "<15": {
+        "trade_count": 71,
+        "win_rate": 0.8732394366197183,
+        "avg_pnl_dollar": 3.2490235150171345,
+        "total_pnl_dollar": 230.68066956621655
+      }
+    },
+    "tail_risk_analysis": {
+      "worst_5pct_days": 63,
+      "days_with_open_trades": 15,
+      "worst_day_return_pct": -5.854294764300372,
+      "worst_5pct_threshold": -1.6622069095691294,
+      "avg_pnl_during_worst_days": 0.573637341897533,
+      "total_pnl_during_worst_days": 45.98142950120346
+    },
+    "stress_test": {
+      "worst_periods": [
+        {
+          "period_end_date": "2025-04-04",
+          "rolling_20d_return": -12.646302374978223,
+          "trades_entered": 6,
+          "losing_trades": 0,
+          "loss_rate": 0.0,
+          "avg_loss_of_losing": 0
+        }
+      ]
+    },
+    "serial_correlation": {
+      "regime_clustering": {
+        "MEAN_REVERTING": {
+          "observed_clusters": 11,
+          "expected_clusters": 10.153846153846153,
+          "clustering_ratio": 1.0833333333333335
+        },
+        "TRENDING_DOWN": {
+          "observed_clusters": 1,
+          "expected_clusters": 0.0,
+          "clustering_ratio": 0
+        },
+        "UNKNOWN": {
+          "observed_clusters": 5,
+          "expected_clusters": 5.28,
+          "clustering_ratio": 0.9469696969696969
+        }
+      },
+      "monthly_stats": {
+        "2024-12": {
+          "trades": 6,
+          "win_rate": 0.8333333333333334,
+          "avg_pnl": 2.3571965905280927
+        },
+        "2025-01": {
+          "trades": 4,
+          "win_rate": 0.75,
+          "avg_pnl": -0.13467767424814148
+        },
+        "2025-02": {
+          "trades": 4,
+          "win_rate": 0.5,
+          "avg_pnl": -2.804258489595342
+        },
+        "2025-03": {
+          "trades": 7,
+          "win_rate": 0.8571428571428571,
+          "avg_pnl": 3.1445063833252154
+        },
+        "2025-04": {
+          "trades": 12,
+          "win_rate": 1.0,
+          "avg_pnl": 5.310421782469555
+        },
+        "2025-05": {
+          "trades": 4,
+          "win_rate": 1.0,
+          "avg_pnl": 8.036595709613056
+        },
+        "2025-06": {
+          "trades": 3,
+          "win_rate": 1.0,
+          "avg_pnl": 6.164881900670433
+        },
+        "2025-08": {
+          "trades": 2,
+          "win_rate": 0.5,
+          "avg_pnl": -2.8484190340484563
+        },
+        "2025-09": {
+          "trades": 1,
+          "win_rate": 1.0,
+          "avg_pnl": 4.317701473580402
+        },
+        "2025-10": {
+          "trades": 4,
+          "win_rate": 0.5,
+          "avg_pnl": -4.023079233279975
+        },
+        "2025-11": {
+          "trades": 7,
+          "win_rate": 0.8571428571428571,
+          "avg_pnl": 1.8971926769633976
+        },
+        "2025-12": {
+          "trades": 2,
+          "win_rate": 1.0,
+          "avg_pnl": 2.8808383450802153
+        },
+        "2026-01": {
+          "trades": 5,
+          "win_rate": 1.0,
+          "avg_pnl": 5.2466546214302765
+        },
+        "2026-02": {
+          "trades": 3,
+          "win_rate": 1.0,
+          "avg_pnl": 4.90772559677114
+        },
+        "2026-03": {
+          "trades": 7,
+          "win_rate": 1.0,
+          "avg_pnl": 7.055511180902089
+        }
+      }
+    }
+  }
+}

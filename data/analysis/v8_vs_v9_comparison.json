@@ -1,0 +1,30 @@
+{
+  "v8": {
+    "total_trades": 71,
+    "win_rate": 0.8732394366197183,
+    "total_return_pct": 0.023068066956621655,
+    "avg_win_pct": 0.2481970465484721,
+    "avg_loss_pct": -0.464904079165384
+  },
+  "v9": {
+    "total_trades": 14,
+    "winning_trades": "8",
+    "losing_trades": "6",
+    "final_portfolio_value": -2255.2606566667037,
+    "total_return_pct": -1.2255260656666704,
+    "win_rate": 0.5714285714285714,
+    "avg_win_pct": 0.29564098422509827,
+    "avg_loss_pct": -0.6101264511873934,
+    "profit_factor": 0.632147093888693,
+    "sharpe_ratio": -4.5376833286592655,
+    "max_drawdown": 3.7140050339773016,
+    "avg_hold_days": 2.857142857142857,
+    "trades_per_year": 2.8111553784860557,
+    "direction_accuracy": 0.5714285714285714
+  },
+  "improvements": {
+    "more_trades": false,
+    "better_win_rate": "False",
+    "better_return": "False"
+  }
+}

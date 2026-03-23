@@ -162,6 +162,11 @@ class RegimeDetector:
               - 'should_trade': boolean, whether to take the signal
               - 'reason': string explaining the adjustment
         """
+        # Convert string signals to numeric (-1 to 1)
+        if isinstance(signal, str):
+            signal_map = {"BUY_CALL": 0.6, "BUY_PUT": -0.6, "HOLD": 0.0}
+            signal = signal_map.get(signal, 0.0)
+
         # Base position sizing and signal filtering
         if regime == MarketRegime.TRENDING_UP:
             # Prefer trend-following signals
@@ -527,12 +532,16 @@ class AllocationFilter:
             Dict with regime, confidence, position_size, and adjustment details
         """
         regime, confidence = self.detector.detect_regime(df)
+        # Convert string signals for filter_signal (it handles conversion internally)
         adjusted = self.detector.filter_signal(signal, regime, confidence)
+
+        # Safe float conversion for string signals
+        signal_num = adjusted['adjusted_signal']
 
         return {
             'regime': regime.value,
             'confidence': float(confidence),
-            'signal': float(signal),
+            'signal': float(signal_num),
             'adjusted_signal': float(adjusted['adjusted_signal']),
             'position_size': base_size * adjusted['position_size_multiplier'],
             'should_trade': adjusted['should_trade'],

@@ -1,0 +1,16 @@
+==================================================
+V8 Backtest Metrics — SPY (options_credit)
+==================================================
+total_trades: 76
+win_rate: 89.5%
+direction_accuracy: 82.9%
+total_pnl: $+307.77
+expectancy: $+4.05
+profit_factor: 5.30
+sharpe_ratio: 1.72
+max_drawdown: -6.2%
+total_return: +30.78%
+final_portfolio_value: $1,307.77
+mode: options_credit
+long_trades: 55
+short_trades: 21

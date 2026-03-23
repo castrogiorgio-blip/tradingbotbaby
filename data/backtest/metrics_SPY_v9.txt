@@ -1,0 +1,58 @@
+======================================================================
+V9 BACKTEST METRICS
+======================================================================
+
+FULL BACKTEST
+----------------------------------------------------------------------
+total_trades                            : 14
+winning_trades                          : 8
+losing_trades                           : 6
+final_portfolio_value                   :   -2255.2607
+total_return_pct                        :      -1.2255
+win_rate                                :       0.5714
+avg_win_pct                             :       0.2956
+avg_loss_pct                            :      -0.6101
+profit_factor                           :       0.6321
+sharpe_ratio                            :      -4.5377
+max_drawdown                            :       3.7140
+avg_hold_days                           :       2.8571
+trades_per_year                         :       2.8112
+direction_accuracy                      :       0.5714
+
+
+WALK-FORWARD VALIDATION (5 FOLDS)
+----------------------------------------------------------------------
+Average OOS Win Rate: 0.0000
+Average OOS Return: 0.0000
+Average OOS Sharpe: 0.0000
+
+Fold 1/5
+  Total Trades: 0
+  Win Rate: 0.0000
+  Return: 0.0000
+  Sharpe: 0.0000
+
+Fold 2/5
+  Total Trades: 0
+  Win Rate: 0.0000
+  Return: 0.0000
+  Sharpe: 0.0000
+
+Fold 3/5
+  Total Trades: 0
+  Win Rate: 0.0000
+  Return: 0.0000
+  Sharpe: 0.0000
+
+Fold 4/5
+  Total Trades: 0
+  Win Rate: 0.0000
+  Return: 0.0000
+  Sharpe: 0.0000
+
+MONTE CARLO SIMULATION (1000 PATHS)
+----------------------------------------------------------------------
+Mean Return: -0.7987
+Std Return: 0.6741
+5th Percentile: -0.9994
+95th Percentile: -0.0127

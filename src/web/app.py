@@ -93,13 +93,17 @@ def load_latest_predictions():
     return predictions
 
 
-def load_backtest_results(symbol="SPY"):
-    """Load backtest results for a symbol."""
+def load_backtest_results(symbol="SPY", mode=None):
+    """Load backtest results for a symbol and optional mode.
+
+    mode: None/'directional', 'options_credit', 'options_debit'
+    """
     bt_dir = DATA_DIR / "backtest"
     results = {}
+    suffix = "" if not mode or mode == "directional" else f"_{mode}"
 
     # Load trades
-    trades_file = bt_dir / f"trades_{symbol}.csv"
+    trades_file = bt_dir / f"trades_{symbol}{suffix}.csv"
     if trades_file.exists():
         trades_df = pd.read_csv(trades_file)
         results["trades"] = trades_df.to_dict(orient="records")
@@ -107,7 +111,7 @@ def load_backtest_results(symbol="SPY"):
         results["trades"] = []
 
     # Load portfolio history
-    portfolio_file = bt_dir / f"portfolio_{symbol}.csv"
+    portfolio_file = bt_dir / f"portfolio_{symbol}{suffix}.csv"
     if portfolio_file.exists():
         portfolio_df = pd.read_csv(portfolio_file)
         results["portfolio"] = portfolio_df.to_dict(orient="records")
@@ -115,7 +119,7 @@ def load_backtest_results(symbol="SPY"):
         results["portfolio"] = []
 
     # Load metrics
-    metrics_file = bt_dir / f"metrics_{symbol}.txt"
+    metrics_file = bt_dir / f"metrics_{symbol}{suffix}.txt"
     if metrics_file.exists():
         metrics = {}
         with open(metrics_file) as f:
@@ -183,26 +187,53 @@ def dashboard():
     return render_template("dashboard.html")
 
 
+def parse_metric(val, default=0):
+    """Parse a metric value that might be formatted (e.g. '$1,019.40', '62.0%', '+1.94%')."""
+    if val is None:
+        return default
+    s = str(val).strip().replace("$", "").replace(",", "").replace("%", "").replace("+", "")
+    try:
+        n = float(s)
+        # If it was a percentage string, convert back to decimal
+        if "%" in str(val):
+            return n / 100
+        return n
+    except (ValueError, TypeError):
+        return default
+
+
 @app.route("/api/overview")
 def api_overview():
-    """Dashboard overview data."""
+    """Dashboard overview data — shows credit spread results (primary strategy)."""
     predictions = load_latest_predictions()
-    backtest = load_backtest_results("SPY")
 
-    # Calculate summary stats
-    total_trades = len(backtest.get("trades", []))
-    metrics = backtest.get("metrics", {})
+    # Try credit spreads first (primary strategy), fall back to directional
+    credit = load_backtest_results("SPY", mode="options_credit")
+    directional = load_backtest_results("SPY")
+
+    # Use credit spread metrics if available, otherwise directional
+    if credit.get("trades"):
+        metrics = credit.get("metrics", {})
+        total_trades = len(credit.get("trades", []))
+        strategy_label = "credit_spreads"
+    else:
+        metrics = directional.get("metrics", {})
+        total_trades = len(directional.get("trades", []))
+        strategy_label = "directional"
 
     return jsonify({
         "last_updated": datetime.now().isoformat(),
-        "portfolio_value": float(metrics.get("final_portfolio_value", 1000)),
-        "total_return": metrics.get("total_return", "0"),
+        "portfolio_value": parse_metric(metrics.get("final_portfolio_value"), 1000),
+        "total_return": parse_metric(metrics.get("total_return"), 0),
         "total_trades": total_trades,
-        "win_rate": metrics.get("win_rate", "0"),
-        "sharpe_ratio": metrics.get("sharpe_ratio", "0"),
-        "max_drawdown": metrics.get("max_drawdown", "0"),
+        "win_rate": parse_metric(metrics.get("win_rate"), 0),
+        "sharpe_ratio": parse_metric(metrics.get("sharpe_ratio"), 0),
+        "max_drawdown": parse_metric(metrics.get("max_drawdown"), 0),
+        "profit_factor": parse_metric(metrics.get("profit_factor"), 0),
+        "expectancy": parse_metric(metrics.get("expectancy"), 0),
+        "strategy": strategy_label,
         "has_predictions": bool(predictions),
-        "has_backtest": bool(backtest.get("trades")),
+        "has_backtest": bool(credit.get("trades") or directional.get("trades")),
     })
 
 
@@ -221,8 +252,29 @@ def api_predictions():
 
 @app.route("/api/backtest/<symbol>")
 def api_backtest(symbol):
-    """Backtest results for a symbol."""
-    return jsonify(load_backtest_results(symbol.upper()))
+    """Backtest results for a symbol. ?mode=options_credit for other modes."""
+    mode = request.args.get("mode", None)
+    return jsonify(load_backtest_results(symbol.upper(), mode=mode))
+
+
+@app.route("/api/backtest-comparison/<symbol>")
+def api_backtest_comparison(symbol):
+    """Compare all backtest modes (directional, credit, debit) for a symbol."""
+    symbol = symbol.upper()
+    modes = ["directional", "options_credit", "options_debit"]
+    comparison = {}
+    for mode in modes:
+        suffix = "" if mode == "directional" else f"_{mode}"
+        metrics_file = DATA_DIR / "backtest" / f"metrics_{symbol}{suffix}.txt"
+        if metrics_file.exists():
+            metrics = {}
+            with open(metrics_file) as f:
+                for line in f:
+                    if ":" in line and not line.startswith("="):
+                        key, val = line.strip().split(":", 1)
+                        metrics[key.strip()] = val.strip()
+            comparison[mode] = metrics
+    return jsonify(comparison)
 
 
 @app.route("/api/portfolio-history/<symbol>")
@@ -271,7 +323,7 @@ def api_run_predictions():
     symbols = data.get("symbols")
     auto_retrain = data.get("auto_retrain", True)  # On by default
 
-    cmd = [sys.executable, "run_daily.py"]
+    cmd = [sys.executable, "run_daily_v7.py"]
     if symbols:
         cmd += ["--symbols"] + symbols
 
@@ -304,7 +356,11 @@ def api_run_backtest():
     symbol = data.get("symbol", "SPY")
     capital = data.get("capital", 1000)
 
-    cmd = [sys.executable, "run_backtest.py", "--symbol", symbol, "--capital", str(capital)]
+    version = data.get("version", "v8")
+    script = "run_backtest_v8.py" if version == "v8" else "run_backtest.py"
+    cmd = [sys.executable, script, "--symbol", symbol, "--capital", str(capital)]
+    if version == "v8" and data.get("skip_wf_xgb", True):
+        cmd.append("--skip-wf-xgb")
     thread = threading.Thread(target=_run_script_background, args=("backtest", cmd))
     thread.daemon = True
     thread.start()
@@ -335,6 +391,83 @@ def api_job_status(job_id):
     if job_id not in _jobs:
         return jsonify({"status": "not_found"})
     return jsonify(_jobs[job_id])
+
+
+@app.route("/api/v10/comparison")
+def api_v10_comparison():
+    """V10 strategy comparison data — all layers + buy & hold."""
+    comparison_file = DATA_DIR / "analysis" / "v10_comparison.json"
+    if comparison_file.exists():
+        with open(comparison_file) as f:
+            return jsonify(json.load(f))
+    return jsonify({"error": "V10 comparison data not found. Run: python3 run_backtest_v10.py --compare"}), 404
+
+
+@app.route("/api/v10/trades/<int:layer>")
+def api_v10_trades(layer):
+    """V10 trade history for a specific layer (1, 2, or 3)."""
+    trades_file = DATA_DIR / "backtest" / f"trades_SPY_v10_layer{layer}.csv"
+    if trades_file.exists():
+        df = pd.read_csv(trades_file)
+        return jsonify(df.to_dict(orient="records"))
+    return jsonify([])
+
+
+@app.route("/api/v10/audit")
+def api_v10_audit():
+    """V10 audit results — phase 1 (stats), phase 2 (regime), phase 3 (hedges)."""
+    results = {}
+    for phase in ["phase1_results", "phase2_results", "phase3_results"]:
+        f = DATA_DIR / "analysis" / f"{phase}.json"
+        if f.exists():
+            with open(f) as fh:
+                results[phase.replace("_results", "")] = json.load(fh)
+
+    # Include v8 vs v9 comparison
+    v8v9_file = DATA_DIR / "analysis" / "v8_vs_v9_comparison.json"
+    if v8v9_file.exists():
+        with open(v8v9_file) as fh:
+            results["v8_vs_v9"] = json.load(fh)
+
+    return jsonify(results)
+
+
+@app.route("/api/v10/portfolio-history/<int:layer>")
+def api_v10_portfolio_history(layer):
+    """Build a synthetic portfolio value series from V10 trade data."""
+    trades_file = DATA_DIR / "backtest" / f"trades_SPY_v10_layer{layer}.csv"
+    if not trades_file.exists():
+        return jsonify({"dates": [], "values": []})
+
+    df = pd.read_csv(trades_file)
+    if df.empty:
+        return jsonify({"dates": [], "values": []})
+
+    # Build cumulative equity curve from trade P&L
+    capital = 10000.0
+    dates = []
+    values = []
+    running = capital
+    for _, row in df.iterrows():
+        running += float(row.get("pnl_dollar", 0))
+        dates.append(str(row.get("exit_date", "")).split(" ")[0])
+        values.append(round(running, 2))
+
+    return jsonify({"dates": dates, "values": values, "initial": capital})
+
+
+@app.route("/api/run/backtest-v10", methods=["POST"])
+def api_run_backtest_v10():
+    """Trigger V10 backtest in background."""
+    if "backtest_v10" in _jobs and _jobs["backtest_v10"].get("status") == "running":
+        return jsonify({"error": "V10 backtest already running"}), 409
+
+    cmd = [sys.executable, "run_backtest_v10.py", "--compare"]
+    thread = threading.Thread(target=_run_script_background, args=("backtest_v10", cmd))
+    thread.daemon = True
+    thread.start()
+
+    return jsonify({"status": "started", "job_id": "backtest_v10"})
 
 
 @app.route("/api/scheduler/status")

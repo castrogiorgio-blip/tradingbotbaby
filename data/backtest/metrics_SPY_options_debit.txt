@@ -1,0 +1,16 @@
+==================================================
+V8 Backtest Metrics — SPY (options_debit)
+==================================================
+total_trades: 76
+win_rate: 43.4%
+direction_accuracy: 61.8%
+total_pnl: $-20.26
+expectancy: $-0.27
+profit_factor: 0.81
+sharpe_ratio: -0.20
+max_drawdown: -7.2%
+total_return: -2.03%
+final_portfolio_value: $979.74
+mode: options_debit
+long_trades: 55
+short_trades: 21

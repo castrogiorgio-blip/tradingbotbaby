@@ -444,12 +444,19 @@ class V8Backtester:
 # ═══════════════════════════════════════════════════════════
 
 def run_backtest_v8(symbol="SPY", days=365*5, capital=1000.0, test_ratio=0.30,
-                    skip_wf_xgb=False):
+                    skip_wf_xgb=False, seed=None):
     t0 = time.time()
+
+    # Seed management: use time-based seed if none provided for run-to-run variation
+    import random
+    if seed is None:
+        seed = int(time.time()) % 100000
+    np.random.seed(seed)
+    random.seed(seed)
 
     print(f"\n{'='*70}")
     print(f"  BACKTEST V8 — {symbol} — ${capital} capital — 5 STRATEGIC IMPROVEMENTS")
-    print(f"  {days} days, {test_ratio*100:.0f}% test split")
+    print(f"  {days} days, {test_ratio*100:.0f}% test split, seed={seed}")
     print(f"  [1] Regime Detection  [2] Walk-Forward XGB  [3] Learned Stacker")
     print(f"  [4] Advanced Features [5] Walk-Forward Backtest Framework")
     print(f"{'='*70}\n")
@@ -522,11 +529,10 @@ def run_backtest_v8(symbol="SPY", days=365*5, capital=1000.0, test_ratio=0.30,
         print("  (This may take a few minutes — searching hyperparameter space)")
         wf_xgb = WalkForwardXGBoost()
 
-        # Prepare features using standard exclusion
-        X_trainval, y_trainval = wf_xgb.prepare_features(
+        # Prepare features using standard exclusion (returns X, y, dates)
+        X_trainval, y_trainval, dates_trainval = wf_xgb.prepare_features(
             pd.concat([df_train, df_val]), target_col="target_direction"
         )
-        dates_trainval = pd.concat([df_train, df_val]).index
 
         # Run walk-forward optimization
         try:
@@ -540,7 +546,7 @@ def run_backtest_v8(symbol="SPY", days=365*5, capital=1000.0, test_ratio=0.30,
 
             # Train final model and predict
             wf_xgb.train_final_model(X_trainval, y_trainval, best_params)
-            X_test_wf, _ = wf_xgb.prepare_features(df_test, target_col="target_direction")
+            X_test_wf, _, _ = wf_xgb.prepare_features(df_test, target_col="target_direction")
             xgb_test_probs = wf_xgb.predict_proba(X_test_wf)
             xgb_feature_names = wf_xgb.feature_names
             print(f"  WF XGB prob range: [{xgb_test_probs.min():.4f}, {xgb_test_probs.max():.4f}]")
@@ -582,9 +588,10 @@ def run_backtest_v8(symbol="SPY", days=365*5, capital=1000.0, test_ratio=0.30,
 
     if lstm_ok:
         all_probs = []
-        for ri, seed in enumerate([42, 123, 777]):
+        lstm_seeds = [seed + i * 31 for i in range(3)]  # Vary with global seed
+        for ri, lseed in enumerate(lstm_seeds):
             lr = LSTMModel()
-            lr._seed = seed
+            lr._seed = lseed
             lr.scaler = lstm.scaler
             lr.n_features = lstm.n_features
             lr.train(X_train_seq, y_train_seq, X_val_seq, y_val_seq)
@@ -775,13 +782,97 @@ def run_backtest_v8(symbol="SPY", days=365*5, capital=1000.0, test_ratio=0.30,
     mc.print_report(mc_results)
     mc.save_results(mc_results, symbol)
 
+    # ─────────────────────────────────────────────────────────
+    # Step 11: Save results to CSV (for dashboard)
+    # ─────────────────────────────────────────────────────────
+    print("Step 11: Saving results to disk (for dashboard)...")
+    bt_dir = DATA_DIR / "backtest"
+    bt_dir.mkdir(parents=True, exist_ok=True)
+
     # Save predictions
     pred_df = pd.DataFrame([{
         "date": str(d.date()), "signal": p["signal"],
         "probability": p["probability"], "confidence": p["confidence"],
         "direction": p["direction"],
     } for d, p in zip(test_dates, predictions)])
-    pred_df.to_csv(DATA_DIR / "backtest" / f"predictions_{symbol}_v8.csv", index=False)
+    pred_df.to_csv(bt_dir / f"predictions_{symbol}.csv", index=False)
+    pred_df.to_csv(bt_dir / f"predictions_{symbol}_v8.csv", index=False)
+
+    # Save trades and portfolio for each mode
+    for mode_name, mode_results in all_results.items():
+        trades = mode_results.get("trades", [])
+        history = mode_results.get("portfolio_history", [])
+        metrics = mode_results.get("metrics", {})
+
+        # Determine file suffix
+        suffix = "" if mode_name == "directional" else f"_{mode_name}"
+
+        # Trades CSV
+        if trades:
+            trades_clean = []
+            for t in trades:
+                trades_clean.append({
+                    "entry_date": str(t.get("entry_date", "")),
+                    "exit_date": str(t.get("exit_date", "")),
+                    "symbol": t.get("symbol", symbol),
+                    "direction": t.get("direction", ""),
+                    "signal": t.get("signal", ""),
+                    "entry_price": t.get("entry_price", 0),
+                    "exit_price": t.get("exit_price", 0),
+                    "position_size": t.get("position_size", 0),
+                    "pnl_pct": t.get("pnl_pct", 0),
+                    "pnl_dollar": t.get("pnl_dollar", 0),
+                    "confidence": t.get("confidence", 0),
+                    "exit_reason": t.get("exit_reason", ""),
+                    "mode": t.get("mode", mode_name),
+                })
+            pd.DataFrame(trades_clean).to_csv(
+                bt_dir / f"trades_{symbol}{suffix}.csv", index=False
+            )
+
+        # Portfolio history CSV
+        if history:
+            hist_clean = []
+            for h in history:
+                hist_clean.append({
+                    "date": str(h.get("date", "")),
+                    "capital": h.get("capital", 0),
+                    "open_value": h.get("open_value", 0),
+                    "total_value": h.get("total_value", h.get("capital", 0)),
+                    "open_positions": h.get("open_positions", 0),
+                })
+            pd.DataFrame(hist_clean).to_csv(
+                bt_dir / f"portfolio_{symbol}{suffix}.csv", index=False
+            )
+
+        # Metrics text file — human-readable formatting
+        def fmt_metric(key, val):
+            if key in ("total_return", "win_rate", "direction_accuracy", "max_drawdown"):
+                return f"{float(val)*100:+.2f}%" if key == "total_return" else f"{float(val)*100:.1f}%"
+            elif key in ("sharpe_ratio", "profit_factor"):
+                return f"{float(val):.2f}"
+            elif key == "final_portfolio_value":
+                return f"${float(val):,.2f}"
+            elif key in ("expectancy", "total_pnl"):
+                return f"${float(val):+,.2f}"
+            elif key == "total_trades":
+                return str(int(val))
+            elif key in ("long_trades", "short_trades"):
+                return str(int(val))
+            elif isinstance(val, float):
+                return f"{val:.4f}"
+            return str(val)
+
+        with open(bt_dir / f"metrics_{symbol}{suffix}.txt", "w") as f:
+            f.write(f"{'='*50}\n")
+            f.write(f"V8 Backtest Metrics — {symbol} ({mode_name})\n")
+            f.write(f"{'='*50}\n")
+            for k, v in metrics.items():
+                if k in ("regime_stats", "exit_reasons"):
+                    continue
+                f.write(f"{k}: {fmt_metric(k, v)}\n")
+
+    print(f"  Saved trades, portfolio, metrics for {list(all_results.keys())}")
 
     elapsed = time.time() - t0
     print(f"\n  Total V8 backtest time: {elapsed:.1f}s")
@@ -841,11 +932,13 @@ if __name__ == "__main__":
     parser.add_argument("--test-ratio", type=float, default=0.30)
     parser.add_argument("--skip-wf-xgb", action="store_true",
                         help="Skip walk-forward XGB optimization (use V6 original)")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Random seed (default: time-based for variation between runs)")
     args = parser.parse_args()
 
     all_results = run_backtest_v8(
         args.symbol, args.days, args.capital, args.test_ratio,
-        skip_wf_xgb=args.skip_wf_xgb,
+        skip_wf_xgb=args.skip_wf_xgb, seed=args.seed,
     )
 
     if all_results:

@@ -1,25 +1,16 @@
-Backtest Results for SPY (directional mode)
-Date: 2026-03-22T01:24:23.883752
-============================================================
-
-total_trades: 309
-winning_trades: 176
-losing_trades: 132
-win_rate: 0.56957928802589
-direction_accuracy: 0.56957928802589
-total_pnl: 8.791583189634522
-avg_pnl_per_trade: 0.028451725532797813
-expectancy: 0.028451725532797807
-avg_win: 0.2513347377947123
-avg_loss: -0.2685100807745064
-profit_factor: 1.2480461916352017
-sharpe_ratio: 0.6530530149328437
-max_drawdown: -0.008570552305650628
-calmar_ratio: 0.8154541715635527
-total_return: 0.00879158318963539
-final_portfolio_value: 1008.7915831896354
-avg_trade_duration_days: 5.423948220064725
-exit_reasons: {'max_hold': 285, 'stop_loss': 16, 'take_profit': 5, 'backtest_end': 3}
-long_trades: 309
-short_trades: 0
+==================================================
+V8 Backtest Metrics — SPY (directional)
+==================================================
+total_trades: 296
+win_rate: 60.8%
+direction_accuracy: 60.8%
+total_pnl: $+20.94
+expectancy: $+0.07
+profit_factor: 1.80
+sharpe_ratio: 0.20
+max_drawdown: -6.0%
+total_return: +2.09%
+final_portfolio_value: $1,020.94
 mode: directional
+long_trades: 250
+short_trades: 46

@@ -1,0 +1,19 @@
+{
+  "credit_pnl": {
+    "n_trades": 71,
+    "win_rate": 0.8732394366197183,
+    "mean_pnl": 0.1578039461058706,
+    "median_pnl": 0.2356470123978974,
+    "std_pnl": 0.25400027634067973,
+    "skewness": -1.8766784147518167,
+    "kurtosis": 2.2218146952852136,
+    "at_max_credit_pct": 0.3380281690140845,
+    "at_max_loss_pct": 0.09859154929577464
+  },
+  "theta_analysis": {
+    "total_pnl_pct": 11.204080173516811,
+    "theta_contribution": 6.129750000000001,
+    "directional_contribution": 5.074330173516812,
+    "theta_pct_of_total": 0.5470997980261645
+  }
+}
